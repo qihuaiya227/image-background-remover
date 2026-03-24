@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 
 export default function Home() {
   const [originalImage, setOriginalImage] = useState<string | null>(null);
@@ -11,17 +11,22 @@ export default function Home() {
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // 清理旧的 result URL
+  const revokeOldResult = useCallback((url: string | null) => {
+    if (url) URL.revokeObjectURL(url);
+  }, []);
+
   const handleFileSelect = (file: File) => {
     if (!file.type.startsWith('image/')) {
-      setError('请上传图片文件');
+      setError('请上传图片文件（ JPG / PNG / WebP ）');
       return;
     }
+    revokeOldResult(resultImage);
+    setResultImage(null);
+    setError(null);
+
     const reader = new FileReader();
-    reader.onload = (e) => {
-      setOriginalImage(e.target?.result as string);
-      setResultImage(null);
-      setError(null);
-    };
+    reader.onload = (e) => setOriginalImage(e.target?.result as string);
     reader.readAsDataURL(file);
   };
 
@@ -45,9 +50,10 @@ export default function Home() {
 
     setLoading(true);
     setError(null);
+    revokeOldResult(resultImage);
+    setResultImage(null);
 
     try {
-      // 将 base64 转换为 Blob
       const res = await fetch(originalImage);
       const blob = await res.blob();
 
@@ -61,20 +67,21 @@ export default function Home() {
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(errorText || `请求失败: ${response.status}`);
+        throw new Error(errorText || `请求失败 (${response.status})`);
       }
 
       const resultBlob = await response.blob();
       const resultUrl = URL.createObjectURL(resultBlob);
       setResultImage(resultUrl);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '处理失败');
+      setError(err instanceof Error ? err.message : '处理失败，请检查 API 地址或网络');
     } finally {
       setLoading(false);
     }
   };
 
   const handleReset = () => {
+    revokeOldResult(resultImage);
     setOriginalImage(null);
     setResultImage(null);
     setError(null);
@@ -90,233 +97,136 @@ export default function Home() {
   };
 
   return (
-    <main style={styles.main}>
-      <h1 style={styles.title}>🪄 图片背景移除</h1>
+    <main className="min-h-screen bg-gradient-to-br from-slate-100 to-blue-50 flex flex-col items-center px-4 py-10">
+      {/* 标题 */}
+      <h1 className="text-3xl font-bold text-gray-800 mb-2">
+        🪄 图片背景移除
+      </h1>
+      <p className="text-gray-500 mb-8 text-sm">上传图片，一键移除背景</p>
 
-      <div style={styles.apiSection}>
-        <label style={styles.label}>API 地址：</label>
-        <input
-          type="text"
-          placeholder="输入你的 Remove.bg Worker URL"
-          value={apiUrl}
-          onChange={(e) => setApiUrl(e.target.value)}
-          style={styles.apiInput}
-        />
-      </div>
+      <div className="w-full max-w-md flex flex-col gap-5">
 
-      <div
-        style={{
-          ...styles.dropZone,
-          ...(dragOver ? styles.dropZoneActive : {}),
-        }}
-        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-        onDragLeave={() => setDragOver(false)}
-        onDrop={handleDrop}
-        onClick={() => fileInputRef.current?.click()}
-      >
-        {!originalImage ? (
-          <div style={styles.placeholder}>
-            <div style={styles.icon}>📤</div>
-            <p>点击或拖拽上传图片</p>
-            <p style={styles.hint}>支持 JPG、PNG、WebP</p>
-          </div>
-        ) : (
-          <img src={originalImage} alt="Original" style={styles.preview} />
-        )}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleFileChange}
-          style={styles.hiddenInput}
-        />
-      </div>
-
-      {error && (
-        <div style={styles.error}>
-          ❌ {error}
+        {/* API 地址 */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-600 mb-1.5">
+            Worker API 地址
+          </label>
+          <input
+            type="text"
+            placeholder="https://your-worker.xxx.workers.dev"
+            value={apiUrl}
+            onChange={(e) => setApiUrl(e.target.value)}
+            className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-400 transition-colors"
+          />
         </div>
-      )}
 
-      <div style={styles.actions}>
-        <button
-          onClick={handleRemoveBg}
-          disabled={!originalImage || !apiUrl.trim() || loading}
-          style={{
-            ...styles.button,
-            ...(loading || !originalImage || !apiUrl.trim() ? styles.buttonDisabled : {}),
-          }}
+        {/* 上传区域 */}
+        <div
+          className={`
+            relative border-2 border-dashed rounded-2xl overflow-hidden cursor-pointer
+            transition-all duration-200 min-h-64 flex items-center justify-center
+            ${dragOver ? 'border-blue-400 bg-blue-50' : 'border-gray-300 bg-white hover:border-gray-400'}
+          `}
+          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={handleDrop}
+          onClick={() => fileInputRef.current?.click()}
         >
-          {loading ? '处理中...' : '移除背景'}
-        </button>
-
-        {originalImage && (
-          <button onClick={handleReset} style={styles.buttonSecondary}>
-            重新上传
-          </button>
-        )}
-      </div>
-
-      {resultImage && (
-        <div style={styles.resultSection}>
-          <h2 style={styles.subTitle}>✨ 结果</h2>
-          <img src={resultImage} alt="Result" style={styles.resultPreview} />
-          <button onClick={handleDownload} style={styles.downloadButton}>
-            ⬇️ 下载 PNG
-          </button>
+          {originalImage ? (
+            <img
+              src={originalImage}
+              alt="原图"
+              className="max-w-full max-h-64 object-contain"
+            />
+          ) : (
+            <div className="text-center text-gray-400 select-none">
+              <div className="text-5xl mb-3">📤</div>
+              <p className="font-medium text-gray-600">点击或拖拽上传图片</p>
+              <p className="text-xs mt-1">支持 JPG、PNG、WebP</p>
+            </div>
+          )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="hidden"
+          />
         </div>
-      )}
 
-      <style>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
+        {/* 错误提示 */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3 text-sm">
+            ❌ {error}
+          </div>
+        )}
+
+        {/* 操作按钮 */}
+        <div className="flex gap-3">
+          <button
+            onClick={handleRemoveBg}
+            disabled={!originalImage || !apiUrl.trim() || loading}
+            className={`
+              flex-1 py-3 rounded-xl font-semibold text-white text-sm
+              transition-all duration-200 flex items-center justify-center gap-2
+              ${!originalImage || !apiUrl.trim() || loading
+                ? 'bg-gray-300 cursor-not-allowed'
+                : 'bg-blue-500 hover:bg-blue-600 active:scale-95'}
+            `}
+          >
+            {loading ? (
+              <>
+                <span className="animate-spin">⏳</span>
+                处理中...
+              </>
+            ) : (
+              '✨ 移除背景'
+            )}
+          </button>
+
+          {originalImage && (
+            <button
+              onClick={handleReset}
+              className="px-5 py-3 bg-white border-2 border-gray-200 rounded-xl font-semibold text-gray-600 text-sm hover:border-gray-300 transition-colors"
+            >
+              重新上传
+            </button>
+          )}
+        </div>
+
+        {/* 结果区域 */}
+        {resultImage && (
+          <div className="bg-white border border-gray-200 rounded-2xl p-5 text-center">
+            <h2 className="text-base font-semibold text-gray-700 mb-3">✨ 结果预览</h2>
+
+            {/* Checkerboard 背景展示透明图 */}
+            <div className="relative inline-block mb-4 rounded-xl overflow-hidden">
+              <div
+                className="w-64 h-64 bg-checkerboard bg-[length:16px_16px] bg-[linear-gradient(45deg,#ccc_25%,transparent_25%,transparent_75%,#ccc_75%),linear-gradient(45deg,#ccc_25%,transparent_25%,transparent_75%,#ccc_75%)]"
+                style={{ backgroundPosition: '0 0, 8px 8px' }}
+              >
+                <img
+                  src={resultImage}
+                  alt="结果图"
+                  className="w-64 h-64 object-contain"
+                />
+              </div>
+            </div>
+
+            <button
+              onClick={handleDownload}
+              className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 active:scale-95 rounded-xl font-semibold text-white text-sm transition-all"
+            >
+              ⬇️ 下载 PNG
+            </button>
+          </div>
+        )}
+
+        {/* 底部说明 */}
+        <div className="text-center text-xs text-gray-400 mt-2">
+          图片仅在浏览器与 Worker 之间传输，不经过任何服务器
+        </div>
+      </div>
     </main>
   );
 }
-
-const styles: { [key: string]: React.CSSProperties } = {
-  main: {
-    minHeight: '100vh',
-    padding: '40px 20px',
-    background: '#f5f5f5',
-    fontFamily: 'system-ui, sans-serif',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: '28px',
-    fontWeight: '700',
-    marginBottom: '24px',
-    color: '#333',
-  },
-  apiSection: {
-    width: '100%',
-    maxWidth: '480px',
-    marginBottom: '20px',
-  },
-  label: {
-    display: 'block',
-    fontSize: '14px',
-    fontWeight: '600',
-    marginBottom: '6px',
-    color: '#555',
-  },
-  apiInput: {
-    width: '100%',
-    padding: '10px 14px',
-    fontSize: '14px',
-    border: '2px solid #ddd',
-    borderRadius: '8px',
-    outline: 'none',
-    boxSizing: 'border-box',
-  },
-  dropZone: {
-    width: '100%',
-    maxWidth: '480px',
-    height: '320px',
-    border: '3px dashed #ccc',
-    borderRadius: '16px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-    transition: 'all 0.2s',
-    background: '#fff',
-    overflow: 'hidden',
-  },
-  dropZoneActive: {
-    borderColor: '#0070f3',
-    background: '#f0f7ff',
-  },
-  placeholder: {
-    textAlign: 'center',
-    color: '#888',
-    userSelect: 'none',
-  },
-  icon: {
-    fontSize: '48px',
-    marginBottom: '12px',
-  },
-  hint: {
-    fontSize: '12px',
-    marginTop: '6px',
-  },
-  preview: {
-    maxWidth: '100%',
-    maxHeight: '320px',
-    objectFit: 'contain',
-  },
-  hiddenInput: {
-    display: 'none',
-  },
-  error: {
-    marginTop: '16px',
-    padding: '12px 16px',
-    background: '#fee',
-    color: '#c00',
-    borderRadius: '8px',
-    fontSize: '14px',
-    maxWidth: '480px',
-    width: '100%',
-    boxSizing: 'border-box',
-  },
-  actions: {
-    marginTop: '20px',
-    display: 'flex',
-    gap: '12px',
-  },
-  button: {
-    padding: '12px 32px',
-    fontSize: '16px',
-    fontWeight: '600',
-    background: '#0070f3',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '8px',
-    cursor: 'pointer',
-  },
-  buttonDisabled: {
-    background: '#ccc',
-    cursor: 'not-allowed',
-  },
-  buttonSecondary: {
-    padding: '12px 24px',
-    fontSize: '16px',
-    background: '#fff',
-    color: '#666',
-    border: '2px solid #ddd',
-    borderRadius: '8px',
-    cursor: 'pointer',
-  },
-  resultSection: {
-    marginTop: '32px',
-    textAlign: 'center',
-    width: '100%',
-    maxWidth: '480px',
-  },
-  subTitle: {
-    fontSize: '20px',
-    marginBottom: '16px',
-    color: '#333',
-  },
-  resultPreview: {
-    maxWidth: '100%',
-    maxHeight: '400px',
-    borderRadius: '12px',
-    boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-  },
-  downloadButton: {
-    marginTop: '16px',
-    padding: '12px 32px',
-    fontSize: '16px',
-    fontWeight: '600',
-    background: '#10b759',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '8px',
-    cursor: 'pointer',
-  },
-};
