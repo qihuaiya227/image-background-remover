@@ -4,6 +4,7 @@
 .pnp.js
 frontend/node_modules/
 frontend/.next/
+frontend/pnpm-store/
 
 # build output
 /.next/
