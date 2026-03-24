@@ -5,6 +5,8 @@
 frontend/node_modules/
 frontend/.next/
 frontend/pnpm-store/
+worker/node_modules/
+worker/.wrangler/
 
 # build output
 /.next/
