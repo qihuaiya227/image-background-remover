@@ -1,5 +1,6 @@
 import { initializeApp, getApps } from 'firebase/app'
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, User } from 'firebase/auth'
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth'
+import type { User } from 'firebase/auth'
 
 const firebaseConfig = {
   apiKey: "AIzaSyB7HSNmHcATF6dsRXozuyuCipq8aWX4VyY",
@@ -14,6 +15,7 @@ const app = initializeApp(firebaseConfig)
 export const auth = getAuth(app)
 export const googleProvider = new GoogleAuthProvider()
 
+export type { User } from 'firebase/auth'
 export const signInWithGoogle = () => signInWithPopup(auth, googleProvider)
 export const logOut = () => signOut(auth)
 export const onAuthChange = (callback: (user: User | null) => void) => 
