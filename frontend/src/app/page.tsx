@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { signInWithGoogle, logOut, onAuthChange, User } from '@/lib/firebase';
 
 export default function Home() {
   const [originalImage, setOriginalImage] = useState<string | null>(null);
@@ -9,7 +10,18 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Firebase Auth 监听登录状态
+  useEffect(() => {
+    const unsubscribe = onAuthChange((user) => {
+      setUser(user);
+      setAuthLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
   // ⚠️ 部署 Worker 后替换为真实 URL，或直接使用 Remove.bg API
   const USE_DIRECT_API = true;
@@ -112,6 +124,14 @@ export default function Home() {
     a.click();
   };
 
+  const handleSignIn = async () => {
+    try {
+      await signInWithGoogle();
+    } catch (err) {
+      setError('登录失败: ' + (err instanceof Error ? err.message : '未知错误'));
+    }
+  };
+
   // 限制最大显示尺寸，保持比例
   const MAX_W = 400;
   const MAX_H = 320;
@@ -124,8 +144,52 @@ export default function Home() {
   };
   const containerStyle: React.CSSProperties = getScaledStyle();
 
+  if (authLoading) {
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex flex-col items-center justify-center px-6 py-10">
+        <div className="text-white">加载中...</div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex flex-col items-center px-6 py-10">
+      {/* 顶部导航栏 */}
+      <div className="w-full max-w-lg flex justify-between items-center mb-6">
+        <div className="text-sm text-slate-400">
+          {user ? (
+            <div className="flex items-center gap-3">
+              {user.photoURL && (
+                <img src={user.photoURL} alt={user.displayName || ''} className="w-8 h-8 rounded-full" />
+              )}
+              <span className="text-slate-300">{user.displayName}</span>
+            </div>
+          ) : (
+            <span className="text-slate-500">未登录</span>
+          )}
+        </div>
+        {user ? (
+          <button
+            onClick={logOut}
+            className="px-4 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs rounded-lg transition-all"
+          >
+            退出
+          </button>
+        ) : (
+          <button
+            onClick={handleSignIn}
+            className="flex items-center gap-2 px-4 py-1.5 bg-white hover:bg-slate-100 text-gray-700 text-xs font-medium rounded-lg transition-all shadow"
+          >
+            <img 
+              src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
+              alt="Google" 
+              className="w-4 h-4" 
+            />
+            Google 登录
+          </button>
+        )}
+      </div>
+
       {/* 标题区 */}
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">
