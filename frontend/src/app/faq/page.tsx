@@ -10,9 +10,9 @@ export default function FAQ() {
         </div>
         <nav className="hidden md:flex items-center gap-8">
           <Link href="/" className="text-slate-400 hover:text-white text-sm transition-colors">首页</Link>
-          <Link href="/faq" className="text-white text-sm font-medium">FAQ</Link>
-          <Link href="/blog" className="text-slate-400 hover:text-white text-sm transition-colors">Blog</Link>
-          <Link href="/about" className="text-slate-400 hover:text-white text-sm transition-colors">About</Link>
+          <Link href="/faq" className="text-white text-sm font-medium">常见问题</Link>
+          <Link href="/blog" className="text-slate-400 hover:text-white text-sm transition-colors">博客</Link>
+          <Link href="/about" className="text-slate-400 hover:text-white text-sm transition-colors">关于</Link>
         </nav>
         <div className="w-20" />
       </header>

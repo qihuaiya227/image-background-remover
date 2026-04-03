@@ -162,9 +162,9 @@ export default function Home() {
         {/* 中间导航 */}
         <nav className="hidden md:flex items-center gap-8">
           <a href="/" className="text-slate-400 hover:text-white text-sm transition-colors">首页</a>
-          <a href="/faq" className="text-slate-400 hover:text-white text-sm transition-colors">FAQ</a>
-          <a href="/blog" className="text-slate-400 hover:text-white text-sm transition-colors">Blog</a>
-          <a href="/about" className="text-slate-400 hover:text-white text-sm transition-colors">About</a>
+          <a href="/faq" className="text-slate-400 hover:text-white text-sm transition-colors">常见问题</a>
+          <a href="/blog" className="text-slate-400 hover:text-white text-sm transition-colors">博客</a>
+          <a href="/about" className="text-slate-400 hover:text-white text-sm transition-colors">关于</a>
         </nav>
 
         {/* 右侧登录 */}
