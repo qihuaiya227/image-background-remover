@@ -155,37 +155,31 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex flex-col items-center px-6 py-10">
       {/* 顶部导航栏 */}
-      <div className="w-full max-w-lg flex justify-between items-center mb-6">
-        <div className="text-sm text-slate-400">
-          {user ? (
-            <div className="flex items-center gap-3">
-              {user.photoURL && (
-                <img src={user.photoURL} alt={user.displayName || ''} className="w-8 h-8 rounded-full" />
-              )}
-              <span className="text-slate-300">{user.displayName}</span>
-            </div>
-          ) : (
-            <span className="text-slate-500">未登录</span>
-          )}
-        </div>
+      <div className="w-full max-w-lg flex justify-end items-center mb-8">
         {user ? (
-          <button
-            onClick={logOut}
-            className="px-4 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs rounded-lg transition-all"
-          >
-            退出
-          </button>
+          <div className="flex items-center gap-3">
+            {user.photoURL && (
+              <img src={user.photoURL} alt={user.displayName || ''} className="w-8 h-8 rounded-full ring-2 ring-blue-400/50" />
+            )}
+            <span className="text-slate-300 text-sm font-medium">{user.displayName}</span>
+            <button
+              onClick={logOut}
+              className="px-3 py-1 bg-slate-700/60 hover:bg-slate-600/80 text-slate-400 hover:text-slate-200 text-xs rounded-md transition-all border border-slate-600/50"
+            >
+              退出
+            </button>
+          </div>
         ) : (
           <button
             onClick={handleSignIn}
-            className="flex items-center gap-2 px-4 py-1.5 bg-white hover:bg-slate-100 text-gray-700 text-xs font-medium rounded-lg transition-all shadow"
+            className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-100 text-gray-700 text-sm font-medium rounded-lg transition-all shadow-lg shadow-blue-900/30"
           >
             <img 
               src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
               alt="Google" 
-              className="w-4 h-4" 
+              className="w-5 h-5" 
             />
-            Google 登录
+            使用 Google 登录
           </button>
         )}
       </div>
