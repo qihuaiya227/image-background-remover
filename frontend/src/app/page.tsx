@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { signInWithGoogle, logOut, onAuthChange, User } from '@/lib/firebase';
+import Link from 'next/link';
+import { signInWithGoogle, logOut, onAuthChange, createOrUpdateUser, User } from '@/lib/firebase';
 
 export default function Home() {
   const [originalImage, setOriginalImage] = useState<string | null>(null);
@@ -15,9 +16,12 @@ export default function Home() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthChange((user) => {
+    const unsubscribe = onAuthChange(async (user) => {
       setUser(user);
       setAuthLoading(false);
+      if (user) {
+        await createOrUpdateUser(user);
+      }
     });
     return () => unsubscribe();
   }, []);
@@ -165,16 +169,21 @@ export default function Home() {
           <a href="/faq" className="text-slate-400 hover:text-white text-sm transition-colors">常见问题</a>
           <a href="/blog" className="text-slate-400 hover:text-white text-sm transition-colors">博客</a>
           <a href="/about" className="text-slate-400 hover:text-white text-sm transition-colors">关于</a>
+          {user && (
+            <a href="/profile" className="text-blue-400 hover:text-blue-300 text-sm transition-colors font-medium">个人中心</a>
+          )}
         </nav>
 
         {/* 右侧登录 */}
         <div className="flex items-center">
           {user ? (
             <div className="flex items-center gap-3">
-              {user.photoURL && (
-                <img src={user.photoURL} alt={user.displayName || ''} className="w-8 h-8 rounded-full ring-2 ring-blue-400/50" />
-              )}
-              <span className="text-slate-300 text-sm font-medium hidden sm:block">{user.displayName}</span>
+              <Link href="/profile" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                {user.photoURL && (
+                  <img src={user.photoURL} alt={user.displayName || ''} className="w-8 h-8 rounded-full ring-2 ring-blue-400/50" />
+                )}
+                <span className="text-slate-300 text-sm font-medium hidden sm:block">{user.displayName}</span>
+              </Link>
               <button
                 onClick={logOut}
                 className="px-3 py-1 bg-slate-700/60 hover:bg-slate-600/80 text-slate-400 hover:text-slate-200 text-xs rounded-md transition-all border border-slate-600/50"
