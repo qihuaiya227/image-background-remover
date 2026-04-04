@@ -201,67 +201,68 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex flex-col">
 
-      {/* 顶部导航栏 — 全宽，右上角登录 */}
-      <header className="w-full px-6 py-4 flex items-center justify-between">
-        {/* 左侧标题 */}
-        <div className="flex items-center gap-2">
-          <span className="text-xl">🪄</span>
-          <span className="text-white font-bold text-lg tracking-tight">图片背景移除</span>
+      {/* 顶部导航栏 — 两行布局 */}
+      <header className="w-full px-6 py-4">
+        {/* 第一行：Logo + 用户信息 */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">🪄</span>
+            <span className="text-white font-bold text-lg tracking-tight">图片背景移除</span>
+          </div>
+
+          <div className="flex items-center">
+            {user ? (
+              <div className="flex items-center gap-3">
+                <Link href="/profile" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                  {user.photoURL && (
+                    <img src={user.photoURL} alt={user.displayName || ''} className="w-8 h-8 rounded-full ring-2 ring-blue-400/50" />
+                  )}
+                  <span className="text-slate-300 text-sm font-medium hidden sm:block">{user.displayName}</span>
+                  {remainingFree !== null && (
+                    <span className={`px-2 py-0.5 text-xs rounded-full ${remainingFree > 0 ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300' : 'bg-amber-500/20 border border-amber-500/40 text-amber-300'}`}>
+                      📅 今日 {remainingFree} 次
+                    </span>
+                  )}
+                  {userCredits !== null && userCredits > 0 && (
+                    <span className="px-2 py-0.5 bg-blue-500/20 border border-blue-500/40 text-blue-300 text-xs rounded-full">
+                      💰 {userCredits}
+                    </span>
+                  )}
+                </Link>
+                <button
+                  onClick={logOut}
+                  className="px-3 py-1 bg-slate-700/60 hover:bg-slate-600/80 text-slate-400 hover:text-slate-200 text-xs rounded-md transition-all border border-slate-600/50"
+                >
+                  退出
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={handleSignIn}
+                className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-100 text-gray-700 text-sm font-medium rounded-lg transition-all shadow-lg shadow-blue-900/30"
+              >
+                <img 
+                  src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
+                  alt="Google" 
+                  className="w-5 h-5" 
+                />
+                登录
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* 中间导航 */}
-        <nav className="hidden md:flex items-center gap-8">
-          <a href="/" className="text-slate-400 hover:text-white text-sm transition-colors">首页</a>
+        {/* 第二行：导航链接（居中） */}
+        <nav className="flex items-center justify-center gap-6 md:gap-8">
+          <a href="/" className="text-white hover:text-slate-300 text-sm transition-colors font-medium">首页</a>
           <a href="/pricing" className="text-slate-400 hover:text-white text-sm transition-colors">定价</a>
           <a href="/faq" className="text-slate-400 hover:text-white text-sm transition-colors">常见问题</a>
           <a href="/blog" className="text-slate-400 hover:text-white text-sm transition-colors">博客</a>
           <a href="/about" className="text-slate-400 hover:text-white text-sm transition-colors">关于</a>
           {user && (
-            <a href="/profile" className="text-blue-400 hover:text-blue-300 text-sm transition-colors font-medium">个人中心</a>
+            <a href="/profile" className="text-slate-400 hover:text-white text-sm transition-colors">个人中心</a>
           )}
         </nav>
-
-        {/* 右侧登录 */}
-        <div className="flex items-center">
-          {user ? (
-            <div className="flex items-center gap-3">
-              <Link href="/profile" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                {user.photoURL && (
-                  <img src={user.photoURL} alt={user.displayName || ''} className="w-8 h-8 rounded-full ring-2 ring-blue-400/50" />
-                )}
-                <span className="text-slate-300 text-sm font-medium hidden sm:block">{user.displayName}</span>
-                {remainingFree !== null && (
-                  <span className={`px-2 py-0.5 text-xs rounded-full ${remainingFree > 0 ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300' : 'bg-amber-500/20 border border-amber-500/40 text-amber-300'}`}>
-                    📅 今日 {remainingFree} 次
-                  </span>
-                )}
-                {userCredits !== null && userCredits > 0 && (
-                  <span className="px-2 py-0.5 bg-blue-500/20 border border-blue-500/40 text-blue-300 text-xs rounded-full">
-                    💰 {userCredits} Credits
-                  </span>
-                )}
-              </Link>
-              <button
-                onClick={logOut}
-                className="px-3 py-1 bg-slate-700/60 hover:bg-slate-600/80 text-slate-400 hover:text-slate-200 text-xs rounded-md transition-all border border-slate-600/50"
-              >
-                退出
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={handleSignIn}
-              className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-100 text-gray-700 text-sm font-medium rounded-lg transition-all shadow-lg shadow-blue-900/30"
-            >
-              <img 
-                src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
-                alt="Google" 
-                className="w-5 h-5" 
-              />
-              登录
-            </button>
-          )}
-        </div>
       </header>
 
       {/* 主内容区 */}

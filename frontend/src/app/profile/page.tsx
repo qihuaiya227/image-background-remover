@@ -198,36 +198,42 @@ function StatCard({ label, value }: { label: string; value: number }) {
 
 function Header({ user }: { user?: User | null }) {
   return (
-    <header className="w-full px-6 py-4 flex items-center justify-between">
-      <Link href="/" className="flex items-center gap-2">
-        <span className="text-xl">🪄</span>
-        <span className="text-white font-bold text-lg tracking-tight">图片背景移除</span>
-      </Link>
+    <header className="w-full px-6 py-4">
+      {/* 第一行：Logo + 用户信息 */}
+      <div className="flex items-center justify-between mb-4">
+        <Link href="/" className="flex items-center gap-2">
+          <span className="text-xl">🪄</span>
+          <span className="text-white font-bold text-lg tracking-tight">图片背景移除</span>
+        </Link>
 
-      <nav className="hidden md:flex items-center gap-8">
+        <div className="flex items-center">
+          {user ? (
+            <Link href="/profile" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+              {user.photoURL && (
+                <img src={user.photoURL} alt={user.displayName || ''} className="w-8 h-8 rounded-full ring-2 ring-blue-400/50" />
+              )}
+              <span className="text-slate-300 text-sm font-medium hidden sm:block">{user.displayName}</span>
+            </Link>
+          ) : (
+            <Link
+              href="/"
+              className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-100 text-gray-700 text-sm font-medium rounded-lg transition-all"
+            >
+              登录
+            </Link>
+          )}
+        </div>
+      </div>
+
+      {/* 第二行：导航链接（居中） */}
+      <nav className="flex items-center justify-center gap-6 md:gap-8">
         <Link href="/" className="text-slate-400 hover:text-white text-sm transition-colors">首页</Link>
+        <Link href="/pricing" className="text-slate-400 hover:text-white text-sm transition-colors">定价</Link>
         <Link href="/faq" className="text-slate-400 hover:text-white text-sm transition-colors">常见问题</Link>
         <Link href="/blog" className="text-slate-400 hover:text-white text-sm transition-colors">博客</Link>
         <Link href="/about" className="text-slate-400 hover:text-white text-sm transition-colors">关于</Link>
+        <Link href="/profile" className="text-white hover:text-slate-200 text-sm transition-colors font-medium">个人中心</Link>
       </nav>
-
-      <div className="flex items-center">
-        {user ? (
-          <Link href="/profile" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            {user.photoURL && (
-              <img src={user.photoURL} alt={user.displayName || ''} className="w-8 h-8 rounded-full ring-2 ring-blue-400/50" />
-            )}
-            <span className="text-slate-300 text-sm font-medium hidden sm:block">{user.displayName}</span>
-          </Link>
-        ) : (
-          <Link
-            href="/"
-            className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-100 text-gray-700 text-sm font-medium rounded-lg transition-all"
-          >
-            登录
-          </Link>
-        )}
-      </div>
     </header>
   );
 }
