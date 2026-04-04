@@ -9,7 +9,7 @@ export default function Pricing() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [userCredits, setUserCredits] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState<'credits' | 'subscription'>('credits');
+  const [activeTab] = useState<'subscription'>('subscription');
 
   useEffect(() => {
     const unsubscribe = onAuthChange(async (user) => {
@@ -23,51 +23,37 @@ export default function Pricing() {
     return () => unsubscribe();
   }, []);
 
-  const creditPacks = [
-    {
-      name: 'Starter',
-      credits: 50,
-      price: 3,
-      description: '体验一下',
-    },
-    {
-      name: 'Pro',
-      credits: 200,
-      price: 9,
-      description: '日常使用',
-      popular: true,
-    },
-    {
-      name: 'Unlimited',
-      credits: 800,
-      price: 29,
-      description: '重度使用',
-    },
-  ];
-
   const subscriptions = [
+    {
+      name: 'Basic',
+      price: 2.99,
+      period: '月',
+      credits: 5,
+      description: '轻度使用',
+      popular: false,
+    },
     {
       name: 'Starter',
       price: 4.99,
       period: '月',
-      credits: 200,
-      description: '轻度使用',
+      credits: 12,
+      description: '日常使用',
       popular: false,
     },
     {
       name: 'Pro',
       price: 9.99,
       period: '月',
-      credits: 500,
-      description: '日常使用',
+      credits: 25,
+      description: '重度使用',
       popular: true,
     },
     {
       name: 'Unlimited',
       price: 19.99,
       period: '月',
-      credits: 1000,
-      description: '重度使用',
+      credits: 50,
+      description: '专业用户',
       popular: false,
     },
   ];
@@ -126,109 +112,9 @@ export default function Pricing() {
           )}
         </div>
 
-        {/* Tab Switcher */}
-        <div className="flex justify-center mb-8">
-          <div className="inline-flex bg-slate-800/50 rounded-xl p-1 border border-slate-700/50">
-            <button
-              onClick={() => setActiveTab('credits')}
-              className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${
-                activeTab === 'credits'
-                  ? 'bg-blue-500 text-white'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              💎 积分包
-            </button>
-            <button
-              onClick={() => setActiveTab('subscription')}
-              className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${
-                activeTab === 'subscription'
-                  ? 'bg-blue-500 text-white'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              📅 月订阅
-            </button>
-          </div>
-        </div>
-
-        {/* Credits Packs */}
-        {activeTab === 'credits' && (
-          <>
-            <div className="grid md:grid-cols-3 gap-6 mb-8">
-              {creditPacks.map((pack) => (
-                <div
-                  key={pack.name}
-                  className={`rounded-2xl p-6 ${
-                    pack.popular
-                      ? 'bg-gradient-to-b from-blue-500/20 to-slate-800/50 border-2 border-blue-500/50'
-                      : 'bg-slate-800/50 border border-slate-700/50'
-                  }`}
-                >
-                  {pack.popular && (
-                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                      <span className="px-4 py-1 bg-blue-500 text-white text-xs font-bold rounded-full">
-                        最受欢迎
-                      </span>
-                    </div>
-                  )}
-
-                  <div className="text-center mb-4">
-                    <h2 className="text-lg font-bold text-white mb-1">{pack.name}</h2>
-                    <p className="text-slate-400 text-sm">{pack.description}</p>
-                  </div>
-
-                  <div className="text-center mb-4">
-                    <div className="flex items-baseline justify-center gap-1">
-                      <span className="text-4xl font-bold text-white">${pack.price}</span>
-                    </div>
-                    <div className="text-blue-400 font-medium mt-1">
-                      {pack.credits} Credits
-                    </div>
-                    <div className="text-emerald-400 text-xs mt-1">
-                      ≈ ${(pack.price / pack.credits).toFixed(3)} / 次
-                    </div>
-                  </div>
-
-                  <ul className="space-y-2 mb-4">
-                    <li className="flex items-center gap-2 text-slate-300 text-sm">
-                      <span className="text-emerald-400">✓</span>
-                      永久有效
-                    </li>
-                    <li className="flex items-center gap-2 text-slate-300 text-sm">
-                      <span className="text-emerald-400">✓</span>
-                      无过期时间
-                    </li>
-                    <li className="flex items-center gap-2 text-slate-300 text-sm">
-                      <span className="text-emerald-400">✓</span>
-                      无水印输出
-                    </li>
-                  </ul>
-
-                  <button
-                    className={`w-full py-3 rounded-xl font-semibold transition-all ${
-                      pack.popular
-                        ? 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-lg'
-                        : 'bg-slate-700 hover:bg-slate-600 text-white'
-                    }`}
-                  >
-                    立即购买
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/50 text-center">
-              <p className="text-slate-400 text-sm">
-                💡 <span className="text-slate-300">积分永久有效</span>，一次购买，终身使用
-              </p>
-            </div>
-          </>
-        )}
-
         {/* Monthly Subscription */}
         {activeTab === 'subscription' && (
-          <div className="grid md:grid-cols-3 gap-6 mb-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             {subscriptions.map((sub) => (
               <div
                 key={sub.name}
