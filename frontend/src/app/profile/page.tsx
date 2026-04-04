@@ -145,11 +145,12 @@ export default function Profile() {
             </div>
           )}
 
-          <button
-            className="w-full mt-4 px-4 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-semibold rounded-xl transition-all"
+          <Link
+            href="/pricing"
+            className="block w-full mt-4 px-4 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-semibold rounded-xl transition-all text-center"
           >
             💳 购买更多 Credits
-          </button>
+          </Link>
         </div>
 
         <div className="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-2xl p-6">

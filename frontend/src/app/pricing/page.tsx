@@ -1,0 +1,213 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { onAuthChange, User } from '@/lib/firebase';
+import { getUserData } from '@/lib/api';
+
+export default function Pricing() {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [userCredits, setUserCredits] = useState<number | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthChange(async (user) => {
+      setUser(user);
+      setLoading(false);
+      if (user) {
+        const data = await getUserData(user.uid);
+        if (data) setUserCredits(data.credits);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const plans = [
+    {
+      name: 'Starter',
+      credits: 300,
+      price: 3,
+      description: '适合轻度使用',
+      popular: false,
+    },
+    {
+      name: 'Pro',
+      credits: 1000,
+      price: 9,
+      description: '最受欢迎',
+      popular: true,
+    },
+    {
+      name: 'Unlimited',
+      credits: 3500,
+      price: 29,
+      description: '重度用户首选',
+      popular: false,
+    },
+  ];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+      {/* Header */}
+      <header className="w-full px-6 py-4 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-2">
+          <span className="text-xl">🪄</span>
+          <span className="text-white font-bold text-lg tracking-tight">图片背景移除</span>
+        </Link>
+
+        <nav className="hidden md:flex items-center gap-8">
+          <Link href="/" className="text-slate-400 hover:text-white text-sm transition-colors">首页</Link>
+          <Link href="/faq" className="text-slate-400 hover:text-white text-sm transition-colors">常见问题</Link>
+          <Link href="/blog" className="text-slate-400 hover:text-white text-sm transition-colors">博客</Link>
+          <Link href="/about" className="text-slate-400 hover:text-white text-sm transition-colors">关于</Link>
+          {user && (
+            <Link href="/profile" className="text-blue-400 hover:text-blue-300 text-sm transition-colors font-medium">个人中心</Link>
+          )}
+        </nav>
+
+        <div className="flex items-center">
+          {user ? (
+            <Link href="/profile" className="flex items-center gap-2">
+              {user.photoURL && (
+                <img src={user.photoURL} alt={user.displayName || ''} className="w-8 h-8 rounded-full ring-2 ring-blue-400/50" />
+              )}
+            </Link>
+          ) : (
+            <Link
+              href="/"
+              className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-100 text-gray-700 text-sm font-medium rounded-lg transition-all"
+            >
+              登录
+            </Link>
+          )}
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="px-6 py-16 max-w-5xl mx-auto">
+        {/* Page Title */}
+        <div className="text-center mb-12">
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">简单透明的定价</h1>
+          <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+            按需购买，无月费，无隐藏费用。每消费 $1 可处理约 100 张图片。
+          </p>
+          {userCredits !== null && (
+            <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-blue-500/10 border border-blue-500/30 rounded-full">
+              <span className="text-blue-300">💰 您当前有</span>
+              <span className="text-blue-400 font-bold">{userCredits} Credits</span>
+            </div>
+          )}
+        </div>
+
+        {/* Pricing Cards */}
+        <div className="grid md:grid-cols-3 gap-6 mb-12">
+          {plans.map((plan) => (
+            <div
+              key={plan.name}
+              className={`relative rounded-2xl p-6 ${
+                plan.popular
+                  ? 'bg-gradient-to-b from-blue-500/20 to-slate-800/50 border-2 border-blue-500/50'
+                  : 'bg-slate-800/50 border border-slate-700/50'
+              }`}
+            >
+              {plan.popular && (
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                  <span className="px-4 py-1 bg-blue-500 text-white text-xs font-bold rounded-full">
+                    最受欢迎
+                  </span>
+                </div>
+              )}
+
+              <div className="text-center mb-6">
+                <h2 className="text-xl font-bold text-white mb-2">{plan.name}</h2>
+                <p className="text-slate-400 text-sm">{plan.description}</p>
+              </div>
+
+              <div className="text-center mb-6">
+                <div className="flex items-baseline justify-center gap-1">
+                  <span className="text-4xl font-bold text-white">${plan.price}</span>
+                </div>
+                <div className="text-slate-400 text-sm mt-1">
+                  {plan.credits.toLocaleString()} Credits
+                </div>
+                <div className="text-emerald-400 text-xs mt-1">
+                  ≈ ${(plan.price / plan.credits).toFixed(3)} / 次
+                </div>
+              </div>
+
+              <ul className="space-y-3 mb-6">
+                <li className="flex items-center gap-2 text-slate-300 text-sm">
+                  <span className="text-emerald-400">✓</span>
+                  {plan.credits.toLocaleString()} 次图片处理
+                </li>
+                <li className="flex items-center gap-2 text-slate-300 text-sm">
+                  <span className="text-emerald-400">✓</span>
+                  永久有效
+                </li>
+                <li className="flex items-center gap-2 text-slate-300 text-sm">
+                  <span className="text-emerald-400">✓</span>
+                  无水印输出
+                </li>
+                <li className="flex items-center gap-2 text-slate-300 text-sm">
+                  <span className="text-emerald-400">✓</span>
+                  高清原图下载
+                </li>
+              </ul>
+
+              <button
+                className={`w-full py-3 rounded-xl font-semibold transition-all ${
+                  plan.popular
+                    ? 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-lg shadow-blue-500/30'
+                    : 'bg-slate-700 hover:bg-slate-600 text-white'
+                }`}
+              >
+                立即购买
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {/* FAQ */}
+        <div className="bg-slate-800/30 rounded-2xl p-6 border border-slate-700/50">
+          <h3 className="text-lg font-bold text-white mb-4">常见问题</h3>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <h4 className="text-slate-300 font-medium mb-1">Credits 有效期多久？</h4>
+              <p className="text-slate-400 text-sm">购买后永久有效，没有过期时间。</p>
+            </div>
+            <div>
+              <h4 className="text-slate-300 font-medium mb-1">可以退款吗？</h4>
+              <p className="text-slate-400 text-sm">未使用的 Credits 7天内可申请退款。</p>
+            </div>
+            <div>
+              <h4 className="text-slate-300 font-medium mb-1">如何购买？</h4>
+              <p className="text-slate-400 text-sm">支持 PayPal、信用卡付款。支付成功后 Credits 即时到账。</p>
+            </div>
+            <div>
+              <h4 className="text-slate-300 font-medium mb-1">免费额度用完了吗？</h4>
+              <p className="text-slate-400 text-sm">登录账号每天有 3 次免费使用，注册即送 3 Credits。</p>
+            </div>
+          </div>
+        </div>
+
+        {/* CTA */}
+        <div className="text-center mt-12">
+          <p className="text-slate-400 mb-4">
+            还有很多问题？
+          </p>
+          <Link
+            href="/faq"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white font-medium rounded-xl transition-all"
+          >
+            查看常见问题
+          </Link>
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="text-center text-xs text-slate-600 py-6">
+        图片仅在浏览器与 API 之间传输，不经过任何服务器
+      </footer>
+    </div>
+  );
+}
