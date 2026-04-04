@@ -45,20 +45,32 @@ export default function Pricing() {
     },
   ];
 
-  const subscription = {
-    name: 'Pro Monthly',
-    price: 9.99,
-    period: '月',
-    credits: 500,
-    description: '每月自动获得 500 Credits，自动续费，随时取消',
-    features: [
-      '每月 500 Credits',
-      '自动续费，随时取消',
-      '优先处理队列',
-      '无广告',
-      '永久保存处理历史',
-    ],
-  };
+  const subscriptions = [
+    {
+      name: 'Starter',
+      price: 4.99,
+      period: '月',
+      credits: 200,
+      description: '轻度使用',
+      popular: false,
+    },
+    {
+      name: 'Pro',
+      price: 9.99,
+      period: '月',
+      credits: 500,
+      description: '日常使用',
+      popular: true,
+    },
+    {
+      name: 'Unlimited',
+      price: 19.99,
+      period: '月',
+      credits: 1000,
+      description: '重度使用',
+      popular: false,
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
@@ -216,46 +228,67 @@ export default function Pricing() {
 
         {/* Monthly Subscription */}
         {activeTab === 'subscription' && (
-          <div className="max-w-md mx-auto">
-            <div className="relative bg-gradient-to-b from-blue-500/20 to-slate-800/50 border-2 border-blue-500/50 rounded-2xl p-8">
-              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                <span className="px-4 py-1 bg-blue-500 text-white text-xs font-bold rounded-full">
-                  推荐
-                </span>
-              </div>
+          <div className="grid md:grid-cols-3 gap-6 mb-8">
+            {subscriptions.map((sub) => (
+              <div
+                key={sub.name}
+                className={`rounded-2xl p-6 flex flex-col ${
+                  sub.popular
+                    ? 'bg-gradient-to-b from-blue-500/20 to-slate-800/50 border-2 border-blue-500/50'
+                    : 'bg-slate-800/50 border border-slate-700/50'
+                }`}
+              >
+                {sub.popular && (
+                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                    <span className="px-4 py-1 bg-blue-500 text-white text-xs font-bold rounded-full">
+                      推荐
+                    </span>
+                  </div>
+                )}
 
-              <div className="text-center mb-6">
-                <h2 className="text-xl font-bold text-white mb-1">{subscription.name}</h2>
-                <p className="text-slate-400 text-sm">{subscription.description}</p>
-              </div>
-
-              <div className="text-center mb-6">
-                <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-5xl font-bold text-white">${subscription.price}</span>
-                  <span className="text-slate-400">/{subscription.period}</span>
+                <div className="text-center mb-4">
+                  <h2 className="text-lg font-bold text-white mb-1">{sub.name}</h2>
+                  <p className="text-slate-400 text-sm">{sub.description}</p>
                 </div>
-                <div className="text-blue-400 font-medium mt-2">
-                  每月 {subscription.credits} Credits
-                </div>
-              </div>
 
-              <ul className="space-y-3 mb-6">
-                {subscription.features.map((feature, i) => (
-                  <li key={i} className="flex items-center gap-2 text-slate-300 text-sm">
+                <div className="text-center mb-4 flex-grow">
+                  <div className="flex items-baseline justify-center gap-1">
+                    <span className="text-4xl font-bold text-white">${sub.price}</span>
+                    <span className="text-slate-400">/{sub.period}</span>
+                  </div>
+                  <div className="text-blue-400 font-medium mt-2">
+                    每月 {sub.credits} Credits
+                  </div>
+                </div>
+
+                <ul className="space-y-2 mb-4">
+                  <li className="flex items-center gap-2 text-slate-300 text-sm">
                     <span className="text-blue-400">✓</span>
-                    {feature}
+                    每月 {sub.credits} Credits
                   </li>
-                ))}
-              </ul>
+                  <li className="flex items-center gap-2 text-slate-300 text-sm">
+                    <span className="text-blue-400">✓</span>
+                    自动续费
+                  </li>
+                  <li className="flex items-center gap-2 text-slate-300 text-sm">
+                    <span className="text-blue-400">✓</span>
+                    随时取消
+                  </li>
+                  <li className="flex items-center gap-2 text-slate-300 text-sm">
+                    <span className="text-blue-400">✓</span>
+                    无广告
+                  </li>
+                </ul>
 
-              <button className="w-full py-4 rounded-xl font-bold text-lg bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-lg shadow-blue-500/30 transition-all">
-                订阅 {subscription.name}
-              </button>
-
-              <p className="text-center text-slate-500 text-xs mt-3">
-                按月计费，随时可取消 · 7天退款保障
-              </p>
-            </div>
+                <button className={`w-full py-3 rounded-xl font-semibold transition-all ${
+                  sub.popular
+                    ? 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-lg'
+                    : 'bg-slate-700 hover:bg-slate-600 text-white'
+                }`}>
+                  订阅 {sub.name}
+                </button>
+              </div>
+            ))}
           </div>
         )}
 
