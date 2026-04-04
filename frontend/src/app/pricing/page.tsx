@@ -126,7 +126,7 @@ export default function Pricing() {
           <Link href="/blog" className="text-slate-400 hover:text-white text-sm transition-colors">博客</Link>
           <Link href="/about" className="text-slate-400 hover:text-white text-sm transition-colors">关于</Link>
           {user && (
-            <Link href="/profile" className="text-blue-400 hover:text-blue-300 text-sm transition-colors font-medium">个人中心</Link>
+            <Link href="/profile" className="text-slate-400 hover:text-white text-sm transition-colors">个人中心</Link>
           )}
         </nav>
 
@@ -178,7 +178,7 @@ export default function Pricing() {
             {subscriptions.map((sub) => (
               <div
                 key={sub.name}
-                className={`rounded-2xl p-6 flex flex-col ${
+                className={`relative rounded-2xl p-6 flex flex-col ${
                   sub.popular
                     ? 'bg-gradient-to-b from-blue-500/20 to-slate-800/50 border-2 border-blue-500/50'
                     : 'bg-slate-800/50 border border-slate-700/50'
