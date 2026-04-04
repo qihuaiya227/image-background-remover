@@ -9,6 +9,7 @@ export default function Pricing() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [userCredits, setUserCredits] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState<'credits' | 'subscription'>('credits');
 
   useEffect(() => {
     const unsubscribe = onAuthChange(async (user) => {
@@ -22,29 +23,42 @@ export default function Pricing() {
     return () => unsubscribe();
   }, []);
 
-  const plans = [
+  const creditPacks = [
     {
       name: 'Starter',
-      credits: 300,
+      credits: 50,
       price: 3,
-      description: '适合轻度使用',
-      popular: false,
+      description: '体验一下',
     },
     {
       name: 'Pro',
-      credits: 1000,
+      credits: 200,
       price: 9,
-      description: '最受欢迎',
+      description: '日常使用',
       popular: true,
     },
     {
       name: 'Unlimited',
-      credits: 3500,
+      credits: 800,
       price: 29,
-      description: '重度用户首选',
-      popular: false,
+      description: '重度使用',
     },
   ];
+
+  const subscription = {
+    name: 'Pro Monthly',
+    price: 9.99,
+    period: '月',
+    credits: 500,
+    description: '每月自动获得 500 Credits，自动续费，随时取消',
+    features: [
+      '每月 500 Credits',
+      '自动续费，随时取消',
+      '优先处理队列',
+      '无广告',
+      '永久保存处理历史',
+    ],
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
@@ -57,6 +71,7 @@ export default function Pricing() {
 
         <nav className="hidden md:flex items-center gap-8">
           <Link href="/" className="text-slate-400 hover:text-white text-sm transition-colors">首页</Link>
+          <Link href="/pricing" className="text-blue-400 hover:text-blue-300 text-sm transition-colors font-medium">定价</Link>
           <Link href="/faq" className="text-slate-400 hover:text-white text-sm transition-colors">常见问题</Link>
           <Link href="/blog" className="text-slate-400 hover:text-white text-sm transition-colors">博客</Link>
           <Link href="/about" className="text-slate-400 hover:text-white text-sm transition-colors">关于</Link>
@@ -84,12 +99,12 @@ export default function Pricing() {
       </header>
 
       {/* Main Content */}
-      <main className="px-6 py-16 max-w-5xl mx-auto">
+      <main className="px-6 py-12 max-w-4xl mx-auto">
         {/* Page Title */}
-        <div className="text-center mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">简单透明的定价</h1>
-          <p className="text-slate-400 text-lg max-w-2xl mx-auto">
-            按需购买，无月费，无隐藏费用。每消费 $1 可处理约 100 张图片。
+        <div className="text-center mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">简单透明的定价</h1>
+          <p className="text-slate-400 text-lg">
+            按需购买，无隐藏费用
           </p>
           {userCredits !== null && (
             <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-blue-500/10 border border-blue-500/30 rounded-full">
@@ -99,108 +114,191 @@ export default function Pricing() {
           )}
         </div>
 
-        {/* Pricing Cards */}
-        <div className="grid md:grid-cols-3 gap-6 mb-12">
-          {plans.map((plan) => (
-            <div
-              key={plan.name}
-              className={`relative rounded-2xl p-6 ${
-                plan.popular
-                  ? 'bg-gradient-to-b from-blue-500/20 to-slate-800/50 border-2 border-blue-500/50'
-                  : 'bg-slate-800/50 border border-slate-700/50'
+        {/* Tab Switcher */}
+        <div className="flex justify-center mb-8">
+          <div className="inline-flex bg-slate-800/50 rounded-xl p-1 border border-slate-700/50">
+            <button
+              onClick={() => setActiveTab('credits')}
+              className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${
+                activeTab === 'credits'
+                  ? 'bg-blue-500 text-white'
+                  : 'text-slate-400 hover:text-white'
               }`}
             >
-              {plan.popular && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                  <span className="px-4 py-1 bg-blue-500 text-white text-xs font-bold rounded-full">
-                    最受欢迎
-                  </span>
+              💎 积分包
+            </button>
+            <button
+              onClick={() => setActiveTab('subscription')}
+              className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${
+                activeTab === 'subscription'
+                  ? 'bg-blue-500 text-white'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              📅 月订阅
+            </button>
+          </div>
+        </div>
+
+        {/* Credits Packs */}
+        {activeTab === 'credits' && (
+          <>
+            <div className="grid md:grid-cols-3 gap-6 mb-8">
+              {creditPacks.map((pack) => (
+                <div
+                  key={pack.name}
+                  className={`rounded-2xl p-6 ${
+                    pack.popular
+                      ? 'bg-gradient-to-b from-blue-500/20 to-slate-800/50 border-2 border-blue-500/50'
+                      : 'bg-slate-800/50 border border-slate-700/50'
+                  }`}
+                >
+                  {pack.popular && (
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                      <span className="px-4 py-1 bg-blue-500 text-white text-xs font-bold rounded-full">
+                        最受欢迎
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="text-center mb-4">
+                    <h2 className="text-lg font-bold text-white mb-1">{pack.name}</h2>
+                    <p className="text-slate-400 text-sm">{pack.description}</p>
+                  </div>
+
+                  <div className="text-center mb-4">
+                    <div className="flex items-baseline justify-center gap-1">
+                      <span className="text-4xl font-bold text-white">${pack.price}</span>
+                    </div>
+                    <div className="text-blue-400 font-medium mt-1">
+                      {pack.credits} Credits
+                    </div>
+                    <div className="text-emerald-400 text-xs mt-1">
+                      ≈ ${(pack.price / pack.credits).toFixed(3)} / 次
+                    </div>
+                  </div>
+
+                  <ul className="space-y-2 mb-4">
+                    <li className="flex items-center gap-2 text-slate-300 text-sm">
+                      <span className="text-emerald-400">✓</span>
+                      永久有效
+                    </li>
+                    <li className="flex items-center gap-2 text-slate-300 text-sm">
+                      <span className="text-emerald-400">✓</span>
+                      无过期时间
+                    </li>
+                    <li className="flex items-center gap-2 text-slate-300 text-sm">
+                      <span className="text-emerald-400">✓</span>
+                      无水印输出
+                    </li>
+                  </ul>
+
+                  <button
+                    className={`w-full py-3 rounded-xl font-semibold transition-all ${
+                      pack.popular
+                        ? 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-lg'
+                        : 'bg-slate-700 hover:bg-slate-600 text-white'
+                    }`}
+                  >
+                    立即购买
+                  </button>
                 </div>
-              )}
+              ))}
+            </div>
+
+            <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/50 text-center">
+              <p className="text-slate-400 text-sm">
+                💡 <span className="text-slate-300">积分永久有效</span>，一次购买，终身使用
+              </p>
+            </div>
+          </>
+        )}
+
+        {/* Monthly Subscription */}
+        {activeTab === 'subscription' && (
+          <div className="max-w-md mx-auto">
+            <div className="relative bg-gradient-to-b from-blue-500/20 to-slate-800/50 border-2 border-blue-500/50 rounded-2xl p-8">
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                <span className="px-4 py-1 bg-blue-500 text-white text-xs font-bold rounded-full">
+                  推荐
+                </span>
+              </div>
 
               <div className="text-center mb-6">
-                <h2 className="text-xl font-bold text-white mb-2">{plan.name}</h2>
-                <p className="text-slate-400 text-sm">{plan.description}</p>
+                <h2 className="text-xl font-bold text-white mb-1">{subscription.name}</h2>
+                <p className="text-slate-400 text-sm">{subscription.description}</p>
               </div>
 
               <div className="text-center mb-6">
                 <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-4xl font-bold text-white">${plan.price}</span>
+                  <span className="text-5xl font-bold text-white">${subscription.price}</span>
+                  <span className="text-slate-400">/{subscription.period}</span>
                 </div>
-                <div className="text-slate-400 text-sm mt-1">
-                  {plan.credits.toLocaleString()} Credits
-                </div>
-                <div className="text-emerald-400 text-xs mt-1">
-                  ≈ ${(plan.price / plan.credits).toFixed(3)} / 次
+                <div className="text-blue-400 font-medium mt-2">
+                  每月 {subscription.credits} Credits
                 </div>
               </div>
 
               <ul className="space-y-3 mb-6">
-                <li className="flex items-center gap-2 text-slate-300 text-sm">
-                  <span className="text-emerald-400">✓</span>
-                  {plan.credits.toLocaleString()} 次图片处理
-                </li>
-                <li className="flex items-center gap-2 text-slate-300 text-sm">
-                  <span className="text-emerald-400">✓</span>
-                  永久有效
-                </li>
-                <li className="flex items-center gap-2 text-slate-300 text-sm">
-                  <span className="text-emerald-400">✓</span>
-                  无水印输出
-                </li>
-                <li className="flex items-center gap-2 text-slate-300 text-sm">
-                  <span className="text-emerald-400">✓</span>
-                  高清原图下载
-                </li>
+                {subscription.features.map((feature, i) => (
+                  <li key={i} className="flex items-center gap-2 text-slate-300 text-sm">
+                    <span className="text-blue-400">✓</span>
+                    {feature}
+                  </li>
+                ))}
               </ul>
 
-              <button
-                className={`w-full py-3 rounded-xl font-semibold transition-all ${
-                  plan.popular
-                    ? 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-lg shadow-blue-500/30'
-                    : 'bg-slate-700 hover:bg-slate-600 text-white'
-                }`}
-              >
-                立即购买
+              <button className="w-full py-4 rounded-xl font-bold text-lg bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-lg shadow-blue-500/30 transition-all">
+                订阅 {subscription.name}
               </button>
-            </div>
-          ))}
-        </div>
 
-        {/* FAQ */}
-        <div className="bg-slate-800/30 rounded-2xl p-6 border border-slate-700/50">
-          <h3 className="text-lg font-bold text-white mb-4">常见问题</h3>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <h4 className="text-slate-300 font-medium mb-1">Credits 有效期多久？</h4>
-              <p className="text-slate-400 text-sm">购买后永久有效，没有过期时间。</p>
+              <p className="text-center text-slate-500 text-xs mt-3">
+                按月计费，随时可取消 · 7天退款保障
+              </p>
             </div>
-            <div>
-              <h4 className="text-slate-300 font-medium mb-1">可以退款吗？</h4>
-              <p className="text-slate-400 text-sm">未使用的 Credits 7天内可申请退款。</p>
+          </div>
+        )}
+
+        {/* Free Usage Info */}
+        <div className="mt-12 bg-slate-800/30 rounded-xl p-6 border border-slate-700/50">
+          <h3 className="text-lg font-bold text-white mb-4 text-center">免费使用</h3>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="text-center">
+              <div className="text-2xl mb-2">👤</div>
+              <div className="text-white font-medium">未登录</div>
+              <div className="text-blue-400 font-bold text-xl">1 次/天</div>
+              <div className="text-slate-400 text-sm mt-1">游客身份使用</div>
             </div>
-            <div>
-              <h4 className="text-slate-300 font-medium mb-1">如何购买？</h4>
-              <p className="text-slate-400 text-sm">支持 PayPal、信用卡付款。支付成功后 Credits 即时到账。</p>
-            </div>
-            <div>
-              <h4 className="text-slate-300 font-medium mb-1">免费额度用完了吗？</h4>
-              <p className="text-slate-400 text-sm">登录账号每天有 3 次免费使用，注册即送 3 Credits。</p>
+            <div className="text-center">
+              <div className="text-2xl mb-2">🔐</div>
+              <div className="text-white font-medium">注册账号</div>
+              <div className="text-blue-400 font-bold text-xl">3 次/天 + 3 Credits</div>
+              <div className="text-slate-400 text-sm mt-1">登录即得额外赠送</div>
             </div>
           </div>
         </div>
 
-        {/* CTA */}
-        <div className="text-center mt-12">
-          <p className="text-slate-400 mb-4">
-            还有很多问题？
-          </p>
-          <Link
-            href="/faq"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white font-medium rounded-xl transition-all"
-          >
-            查看常见问题
-          </Link>
+        {/* FAQ */}
+        <div className="mt-8 bg-slate-800/30 rounded-xl p-6 border border-slate-700/50">
+          <h3 className="text-lg font-bold text-white mb-4">常见问题</h3>
+          <div className="grid md:grid-cols-2 gap-4 text-sm">
+            <div>
+              <h4 className="text-slate-300 font-medium mb-1">积分会过期吗？</h4>
+              <p className="text-slate-400">积分包购买后永久有效，没有过期时间。</p>
+            </div>
+            <div>
+              <h4 className="text-slate-300 font-medium mb-1">如何取消订阅？</h4>
+              <p className="text-slate-400">随时可在个人中心取消，取消后不再续费。</p>
+            </div>
+            <div>
+              <h4 className="text-slate-300 font-medium mb-1">支持什么支付方式？</h4>
+              <p className="text-slate-400">支持 PayPal、信用卡（Visa/Mastercard）等。</p>
+            </div>
+            <div>
+              <h4 className="text-slate-300 font-medium mb-1">可以退款吗？</h4>
+              <p className="text-slate-400">订阅7天内可申请退款，积分包未使用可退。</p>
+            </div>
+          </div>
         </div>
       </main>
 
