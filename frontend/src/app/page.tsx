@@ -14,6 +14,7 @@ export default function Home() {
   const [dragOver, setDragOver] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [userCredits, setUserCredits] = useState<number | null>(null);
+  const [remainingFree, setRemainingFree] = useState<number | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -30,8 +31,11 @@ export default function Home() {
         });
         const data = await getUserData(user.uid);
         if (data) setUserCredits(data.credits);
+        const check = await checkQuota(user.uid);
+        if (check) setRemainingFree(check.remaining ?? null);
       } else {
         setUserCredits(null);
+        setRemainingFree(null);
       }
     });
     return () => unsubscribe();
@@ -129,8 +133,10 @@ export default function Home() {
       // 扣减额度（登录用户扣 credits，未登录记录到 anon）
       const useResult = await useCredits(user?.uid)
       if (useResult.success) {
-        if (user && useResult.credits !== undefined) {
-          setUserCredits(useResult.credits)
+        if (user) {
+          const check = await checkQuota(user.uid);
+          if (check) setRemainingFree(check.remaining ?? null);
+          if (useResult.credits !== undefined) setUserCredits(useResult.credits);
         }
         if (!user && useResult.remaining !== undefined) {
           setError(`✅ 今日已使用 1 次，剩余 ${useResult.remaining} 次`)
@@ -223,9 +229,14 @@ export default function Home() {
                   <img src={user.photoURL} alt={user.displayName || ''} className="w-8 h-8 rounded-full ring-2 ring-blue-400/50" />
                 )}
                 <span className="text-slate-300 text-sm font-medium hidden sm:block">{user.displayName}</span>
-                {userCredits !== null && (
+                {remainingFree !== null && (
+                  <span className={`px-2 py-0.5 text-xs rounded-full ${remainingFree > 0 ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300' : 'bg-amber-500/20 border border-amber-500/40 text-amber-300'}`}>
+                    📅 今日 {remainingFree} 次
+                  </span>
+                )}
+                {userCredits !== null && userCredits > 0 && (
                   <span className="px-2 py-0.5 bg-blue-500/20 border border-blue-500/40 text-blue-300 text-xs rounded-full">
-                    💰 {userCredits}
+                    💰 {userCredits} Credits
                   </span>
                 )}
               </Link>

@@ -1,5 +1,5 @@
 const FREE_DAILY_LIMIT_ANON = 1       // 未登录游客每天免费次数
-const FREE_DAILY_LIMIT_USER = 5       // 登录用户每天免费次数
+const FREE_DAILY_LIMIT_USER = 3       // 登录用户每天免费次数
 const REGISTER_BONUS = 3              // 注册赠送次数
 const COST_PER_CALL = 1               // 每次调用扣1 credit
 
