@@ -113,13 +113,34 @@ export default function Pricing() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
       {/* Header */}
-      <header className="w-full px-6 py-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="text-xl">🪄</span>
-          <span className="text-white font-bold text-lg tracking-tight">图片背景移除</span>
-        </Link>
+      <header className="w-full px-6 py-4">
+        {/* Top row: Logo + User */}
+        <div className="flex items-center justify-between mb-4">
+          <Link href="/" className="flex items-center gap-2">
+            <span className="text-xl">🪄</span>
+            <span className="text-white font-bold text-lg tracking-tight">图片背景移除</span>
+          </Link>
 
-        <nav className="hidden md:flex items-center gap-8">
+          <div className="flex items-center">
+            {user ? (
+              <Link href="/profile" className="flex items-center gap-2">
+                {user.photoURL && (
+                  <img src={user.photoURL} alt={user.displayName || ''} className="w-8 h-8 rounded-full ring-2 ring-blue-400/50" />
+                )}
+              </Link>
+            ) : (
+              <Link
+                href="/"
+                className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-100 text-gray-700 text-sm font-medium rounded-lg transition-all"
+              >
+                登录
+              </Link>
+            )}
+          </div>
+        </div>
+
+        {/* Bottom row: Nav links centered */}
+        <nav className="flex items-center justify-center gap-6 md:gap-8">
           <Link href="/" className="text-slate-400 hover:text-white text-sm transition-colors">首页</Link>
           <Link href="/pricing" className="text-blue-400 hover:text-blue-300 text-sm transition-colors font-medium">定价</Link>
           <Link href="/faq" className="text-slate-400 hover:text-white text-sm transition-colors">常见问题</Link>
@@ -129,23 +150,6 @@ export default function Pricing() {
             <Link href="/profile" className="text-slate-400 hover:text-white text-sm transition-colors">个人中心</Link>
           )}
         </nav>
-
-        <div className="flex items-center">
-          {user ? (
-            <Link href="/profile" className="flex items-center gap-2">
-              {user.photoURL && (
-                <img src={user.photoURL} alt={user.displayName || ''} className="w-8 h-8 rounded-full ring-2 ring-blue-400/50" />
-              )}
-            </Link>
-          ) : (
-            <Link
-              href="/"
-              className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-100 text-gray-700 text-sm font-medium rounded-lg transition-all"
-            >
-              登录
-            </Link>
-          )}
-        </div>
       </header>
 
       {/* Main Content */}
