@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { signInWithGoogle, logOut, onAuthChange, User } from '@/lib/firebase';
-import { createOrUpdateUser, incrementUsage } from '@/lib/api';
+import { createOrUpdateUser, checkQuota, useCredits, getUserData } from '@/lib/api';
 
 export default function Home() {
   const [originalImage, setOriginalImage] = useState<string | null>(null);
@@ -13,6 +13,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [userCredits, setUserCredits] = useState<number | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -27,6 +28,10 @@ export default function Home() {
           displayName: user.displayName,
           photoURL: user.photoURL,
         });
+        const data = await getUserData(user.uid);
+        if (data) setUserCredits(data.credits);
+      } else {
+        setUserCredits(null);
       }
     });
     return () => unsubscribe();
@@ -76,6 +81,17 @@ export default function Home() {
   const handleRemoveBg = async () => {
     if (!originalImage) return;
 
+    // 已登录用户：检查额度
+    if (user) {
+      const check = await checkQuota(user.uid);
+      if (check && !check.allowed) {
+        if (check.reason === 'no_credits') {
+          setError('⚠️ Credits 已用完，请前往个人中心充值');
+          return;
+        }
+      }
+    }
+
     setLoading(true);
     setError(null);
     revokeOldResult(resultImage);
@@ -107,8 +123,13 @@ export default function Home() {
       const resultBlob = await response.blob();
       const resultUrl = URL.createObjectURL(resultBlob);
       setResultImage(resultUrl);
+
+      // 已登录用户：扣减 credits
       if (user) {
-        incrementUsage(user.uid);
+        const result = await useCredits(user.uid);
+        if (result.success && result.credits !== undefined) {
+          setUserCredits(result.credits);
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : '处理失败，请检查网络');
@@ -192,6 +213,11 @@ export default function Home() {
                   <img src={user.photoURL} alt={user.displayName || ''} className="w-8 h-8 rounded-full ring-2 ring-blue-400/50" />
                 )}
                 <span className="text-slate-300 text-sm font-medium hidden sm:block">{user.displayName}</span>
+                {userCredits !== null && (
+                  <span className="px-2 py-0.5 bg-blue-500/20 border border-blue-500/40 text-blue-300 text-xs rounded-full">
+                    💰 {userCredits}
+                  </span>
+                )}
               </Link>
               <button
                 onClick={logOut}

@@ -128,13 +128,28 @@ export default function Profile() {
 
         <div className="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-2xl p-6 mb-6">
           <h2 className="text-lg font-semibold text-white mb-5 flex items-center gap-2">
-            <span>📊</span> 使用统计
+            <span>💰</span> Credits 余额
           </h2>
           
-          <div className="grid grid-cols-2 gap-4">
-            <StatCard label="累计使用次数" value={profileData?.usage_count || 0} />
-            <StatCard label="本月使用次数" value={profileData?.monthly_usage || 0} />
+          <div className="grid grid-cols-3 gap-4">
+            <StatCard label="剩余 Credits" value={profileData?.credits || 0} />
+            <StatCard label="累计使用" value={profileData?.usage_count || 0} />
+            <StatCard label="本月使用" value={profileData?.monthly_usage || 0} />
           </div>
+
+          {profileData && profileData.credits <= 5 && profileData.credits > 0 && (
+            <div className="mt-4 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl">
+              <p className="text-amber-300 text-sm text-center">
+                ⚠️ Credits 即将用完，请及时充值
+              </p>
+            </div>
+          )}
+
+          <button
+            className="w-full mt-4 px-4 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-semibold rounded-xl transition-all"
+          >
+            💳 购买更多 Credits
+          </button>
         </div>
 
         <div className="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-2xl p-6">

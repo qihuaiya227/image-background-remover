@@ -1,4 +1,3 @@
-// Cloudflare Worker API (D1 Database)
 const WORKER_URL = 'https://image-bg-remover.qihuaiya227.workers.dev'
 
 export type UserProfile = {
@@ -10,6 +9,25 @@ export type UserProfile = {
   last_login_at: number
   usage_count: number
   monthly_usage: number
+  credits: number
+}
+
+export type CheckResult = {
+  allowed: boolean
+  reason: string
+  credits?: number
+  monthlyUsage?: number
+  monthlyLimit?: number | null
+  freeDailyLimit?: number
+  remaining?: number
+}
+
+export type UseResult = {
+  success: boolean
+  credits?: number
+  usageCount?: number
+  monthlyUsage?: number
+  error?: string
 }
 
 export const getUserData = async (uid: string): Promise<UserProfile | null> => {
@@ -46,14 +64,33 @@ export const createOrUpdateUser = async (user: {
   }
 }
 
-export const incrementUsage = async (uid: string): Promise<void> => {
+export const checkQuota = async (uid: string): Promise<CheckResult | null> => {
   try {
-    await fetch(`${WORKER_URL}/api/user/increment`, {
+    const res = await fetch(`${WORKER_URL}/api/check`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ uid }),
     })
+    if (!res.ok) return null
+    return await res.json()
   } catch {
-    // silent fail
+    return null
+  }
+}
+
+export const useCredits = async (uid: string): Promise<UseResult> => {
+  try {
+    const res = await fetch(`${WORKER_URL}/api/use`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid }),
+    })
+    const data = await res.json()
+    if (!res.ok) {
+      return { success: false, error: data.error || 'failed' }
+    }
+    return data
+  } catch {
+    return { success: false, error: 'network_error' }
   }
 }
