@@ -3,23 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { onAuthChange, createOrUpdateUser, getUserData, logOut, User } from '@/lib/firebase';
-
-interface UserProfileData {
-  email: string | null;
-  displayName: string | null;
-  photoURL: string | null;
-  createdAt: { seconds: number } | null;
-  lastLoginAt: { seconds: number } | null;
-  usageCount: number;
-  monthlyUsage: number;
-}
+import { onAuthChange, logOut, User } from '@/lib/firebase';
+import { createOrUpdateUser, getUserData, type UserProfile } from '@/lib/api';
 
 export default function Profile() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [profileData, setProfileData] = useState<UserProfileData | null>(null);
+  const [profileData, setProfileData] = useState<UserProfile | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
@@ -28,11 +19,14 @@ export default function Profile() {
       setLoading(false);
       
       if (user) {
-        // 创建或更新用户数据
-        await createOrUpdateUser(user);
-        // 获取用户数据
+        await createOrUpdateUser({
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+        });
         const data = await getUserData(user.uid);
-        setProfileData(data as UserProfileData | null);
+        setProfileData(data);
         setDataLoading(false);
       } else {
         setDataLoading(false);
@@ -46,9 +40,9 @@ export default function Profile() {
     router.push('/');
   };
 
-  const formatDate = (timestamp: { seconds: number } | null) => {
+  const formatDate = (timestamp: number | null) => {
     if (!timestamp) return '-';
-    return new Date(timestamp.seconds * 1000).toLocaleString('zh-CN', {
+    return new Date(timestamp * 1000).toLocaleString('zh-CN', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -57,7 +51,6 @@ export default function Profile() {
     });
   };
 
-  // 未登录
   if (!loading && !user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex flex-col">
@@ -80,7 +73,6 @@ export default function Profile() {
     );
   }
 
-  // 加载中
   if (loading || dataLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex flex-col">
@@ -100,20 +92,17 @@ export default function Profile() {
       <Header user={user} />
       
       <main className="flex-1 px-6 py-10 max-w-3xl mx-auto w-full">
-        {/* 页面标题 */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-white">个人中心</h1>
           <p className="text-slate-400 text-sm mt-1">管理您的账户信息</p>
         </div>
 
-        {/* 账户信息卡片 */}
         <div className="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-2xl p-6 mb-6">
           <h2 className="text-lg font-semibold text-white mb-5 flex items-center gap-2">
             <span>👤</span> 账户信息
           </h2>
           
           <div className="flex items-start gap-6">
-            {/* 头像 */}
             <div className="flex-shrink-0">
               {user?.photoURL ? (
                 <img 
@@ -128,29 +117,26 @@ export default function Profile() {
               )}
             </div>
 
-            {/* 信息列表 */}
             <div className="flex-1 space-y-4">
               <InfoItem label="显示名称" value={user?.displayName || '未设置'} />
               <InfoItem label="邮箱" value={user?.email || '-'} />
-              <InfoItem label="注册时间" value={formatDate(profileData?.createdAt || null)} />
-              <InfoItem label="最后登录" value={formatDate(profileData?.lastLoginAt || null)} />
+              <InfoItem label="注册时间" value={formatDate(profileData?.created_at || null)} />
+              <InfoItem label="最后登录" value={formatDate(profileData?.last_login_at || null)} />
             </div>
           </div>
         </div>
 
-        {/* 使用统计卡片 */}
         <div className="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-2xl p-6 mb-6">
           <h2 className="text-lg font-semibold text-white mb-5 flex items-center gap-2">
             <span>📊</span> 使用统计
           </h2>
           
           <div className="grid grid-cols-2 gap-4">
-            <StatCard label="累计使用次数" value={profileData?.usageCount || 0} />
-            <StatCard label="本月使用次数" value={profileData?.monthlyUsage || 0} />
+            <StatCard label="累计使用次数" value={profileData?.usage_count || 0} />
+            <StatCard label="本月使用次数" value={profileData?.monthly_usage || 0} />
           </div>
         </div>
 
-        {/* 安全操作 */}
         <div className="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-2xl p-6">
           <h2 className="text-lg font-semibold text-white mb-5 flex items-center gap-2">
             <span>⚙️</span> 账户操作
@@ -176,7 +162,6 @@ export default function Profile() {
   );
 }
 
-// 信息行组件
 function InfoItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
@@ -186,7 +171,6 @@ function InfoItem({ label, value }: { label: string; value: string }) {
   );
 }
 
-// 统计卡片组件
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
     <div className="bg-slate-700/30 rounded-xl p-4 text-center">
@@ -196,7 +180,6 @@ function StatCard({ label, value }: { label: string; value: number }) {
   );
 }
 
-// Header 组件
 function Header({ user }: { user?: User | null }) {
   return (
     <header className="w-full px-6 py-4 flex items-center justify-between">
@@ -233,7 +216,6 @@ function Header({ user }: { user?: User | null }) {
   );
 }
 
-// Footer 组件
 function Footer() {
   return (
     <footer className="text-center text-xs text-slate-600 py-6">

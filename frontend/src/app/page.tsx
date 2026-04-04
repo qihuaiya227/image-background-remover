@@ -2,7 +2,8 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import Link from 'next/link';
-import { signInWithGoogle, logOut, onAuthChange, createOrUpdateUser, User } from '@/lib/firebase';
+import { signInWithGoogle, logOut, onAuthChange, User } from '@/lib/firebase';
+import { createOrUpdateUser, incrementUsage } from '@/lib/api';
 
 export default function Home() {
   const [originalImage, setOriginalImage] = useState<string | null>(null);
@@ -20,7 +21,12 @@ export default function Home() {
       setUser(user);
       setAuthLoading(false);
       if (user) {
-        await createOrUpdateUser(user);
+        await createOrUpdateUser({
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+        });
       }
     });
     return () => unsubscribe();
@@ -101,6 +107,9 @@ export default function Home() {
       const resultBlob = await response.blob();
       const resultUrl = URL.createObjectURL(resultBlob);
       setResultImage(resultUrl);
+      if (user) {
+        incrementUsage(user.uid);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : '处理失败，请检查网络');
     } finally {

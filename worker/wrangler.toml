@@ -1,3 +1,8 @@
 name = "image-bg-remover"
+main = "src/index.js"
 compatibility_date = "2024-03-01"
-pages_build_output_dir = ".next"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "user-db"
+database_id = "0b4f47d5-57b5-47ed-9276-05b9c105a9dc"
