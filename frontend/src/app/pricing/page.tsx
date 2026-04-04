@@ -2,14 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { onAuthChange, User } from '@/lib/firebase';
-import { getUserData } from '@/lib/api';
+import { getUserData, createOrder, captureOrder } from '@/lib/api';
 
 export default function Pricing() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [userCredits, setUserCredits] = useState<number | null>(null);
   const [activeTab] = useState<'subscription'>('subscription');
+  const [purchasing, setPurchasing] = useState<string | null>(null);
+  const [message, setMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthChange(async (user) => {
@@ -22,6 +25,55 @@ export default function Pricing() {
     });
     return () => unsubscribe();
   }, []);
+
+  // 处理 URL 参数（支付回调）
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const success = params.get('success');
+    const canceled = params.get('canceled');
+    const orderId = params.get('token');
+    const plan = params.get('plan');
+    const uid = params.get('uid');
+
+    if (success === '1' && orderId && uid && plan && user) {
+      // 捕获订单
+      const doCapture = async () => {
+        const result = await captureOrder(orderId, uid, plan);
+        if (result?.success) {
+          setMessage({ type: 'success', text: `✅ 购买成功！已获得 ${result.addedCredits} Credits` });
+          setUserCredits(result.credits || null);
+        } else {
+          setMessage({ type: 'error', text: '❌ 支付验证失败，请联系客服' });
+        }
+        // 清理 URL
+        window.history.replaceState({}, '', '/pricing');
+      };
+      if (user.uid === uid) doCapture();
+    } else if (canceled === '1') {
+      setMessage({ type: 'error', text: '⚠️ 支付已取消' });
+      window.history.replaceState({}, '', '/pricing');
+    }
+  }, [user]);
+
+  const handlePurchase = async (plan: string) => {
+    if (!user) {
+      setMessage({ type: 'error', text: '请先登录后再购买' });
+      return;
+    }
+    setPurchasing(plan);
+    try {
+      const order = await createOrder(user.uid, plan);
+      if (order?.approveUrl) {
+        window.location.href = order.approveUrl;
+      } else {
+        setMessage({ type: 'error', text: '创建订单失败，请重试' });
+        setPurchasing(null);
+      }
+    } catch {
+      setMessage({ type: 'error', text: '网络错误，请重试' });
+      setPurchasing(null);
+    }
+  };
 
   const subscriptions = [
     {
@@ -110,6 +162,14 @@ export default function Pricing() {
               <span className="text-blue-400 font-bold">{userCredits} Credits</span>
             </div>
           )}
+
+          {message && (
+            <div className={`mt-4 px-4 py-3 rounded-xl text-center text-sm ${
+              message.type === 'success' ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300' : 'bg-red-500/20 border border-red-500/40 text-red-300'
+            }`}>
+              {message.text}
+            </div>
+          )}
         </div>
 
         {/* Monthly Subscription */}
@@ -166,12 +226,15 @@ export default function Pricing() {
                   </li>
                 </ul>
 
-                <button className={`w-full py-3 rounded-xl font-semibold transition-all ${
+                <button
+                  onClick={() => handlePurchase(sub.name.toLowerCase())}
+                  disabled={purchasing === sub.name.toLowerCase()}
+                  className={`w-full py-3 rounded-xl font-semibold transition-all disabled:opacity-50 ${
                   sub.popular
                     ? 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-lg'
                     : 'bg-slate-700 hover:bg-slate-600 text-white'
                 }`}>
-                  订阅 {sub.name}
+                  {purchasing === sub.name.toLowerCase() ? '跳转中...' : `订阅 ${sub.name}`}
                 </button>
               </div>
             ))}

@@ -1,4 +1,5 @@
 const WORKER_URL = 'https://image-bg-remover.qihuaiya227.workers.dev'
+const SITE_URL = 'https://www.debackground.shop'
 
 export type UserProfile = {
   uid: string
@@ -119,5 +120,45 @@ export const useCredits = async (uid?: string): Promise<UseResult> => {
     return data
   } catch {
     return { success: false, error: 'network_error' }
+  }
+}
+
+export type OrderResult = {
+  orderId: string
+  approveUrl: string
+}
+
+export type CaptureResult = {
+  success: boolean
+  credits?: number
+  addedCredits?: number
+  error?: string
+}
+
+export const createOrder = async (uid: string, plan: string): Promise<OrderResult | null> => {
+  try {
+    const res = await fetch(`${WORKER_URL}/api/create-order`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid, plan }),
+    })
+    if (!res.ok) return null
+    return await res.json()
+  } catch {
+    return null
+  }
+}
+
+export const captureOrder = async (orderId: string, uid: string, plan: string): Promise<CaptureResult | null> => {
+  try {
+    const res = await fetch(`${WORKER_URL}/api/capture-order`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId, uid, plan }),
+    })
+    if (!res.ok) return null
+    return await res.json()
+  } catch {
+    return null
   }
 }
