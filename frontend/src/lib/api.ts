@@ -16,18 +16,22 @@ export type CheckResult = {
   allowed: boolean
   reason: string
   credits?: number
-  monthlyUsage?: number
-  monthlyLimit?: number | null
-  freeDailyLimit?: number
+  dailyUsage?: number
+  dailyLimit?: number
   remaining?: number
+  hasCredits?: boolean
 }
 
 export type UseResult = {
   success: boolean
   credits?: number
+  dailyUsage?: number
   usageCount?: number
   monthlyUsage?: number
+  remaining?: number
+  usedFree?: boolean
   error?: string
+  reason?: string
 }
 
 export const getUserData = async (uid: string): Promise<UserProfile | null> => {
@@ -64,12 +68,29 @@ export const createOrUpdateUser = async (user: {
   }
 }
 
-export const checkQuota = async (uid: string): Promise<CheckResult | null> => {
+// 获取或创建匿名ID（存储在 localStorage）
+export const getAnonId = (): string => {
+  if (typeof window === 'undefined') return ''
+  let anonId = localStorage.getItem('anon_id')
+  if (!anonId) {
+    anonId = 'anon_' + Math.random().toString(36).slice(2) + Date.now().toString(36)
+    localStorage.setItem('anon_id', anonId)
+  }
+  return anonId
+}
+
+export const checkQuota = async (uid?: string): Promise<CheckResult | null> => {
   try {
+    const body: Record<string, string> = {}
+    if (uid) {
+      body.uid = uid
+    } else {
+      body.anon_id = getAnonId()
+    }
     const res = await fetch(`${WORKER_URL}/api/check`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uid }),
+      body: JSON.stringify(body),
     })
     if (!res.ok) return null
     return await res.json()
@@ -78,16 +99,22 @@ export const checkQuota = async (uid: string): Promise<CheckResult | null> => {
   }
 }
 
-export const useCredits = async (uid: string): Promise<UseResult> => {
+export const useCredits = async (uid?: string): Promise<UseResult> => {
   try {
+    const body: Record<string, string> = {}
+    if (uid) {
+      body.uid = uid
+    } else {
+      body.anon_id = getAnonId()
+    }
     const res = await fetch(`${WORKER_URL}/api/use`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uid }),
+      body: JSON.stringify(body),
     })
     const data = await res.json()
     if (!res.ok) {
-      return { success: false, error: data.error || 'failed' }
+      return { success: false, error: data.error || 'failed', reason: data.reason }
     }
     return data
   } catch {

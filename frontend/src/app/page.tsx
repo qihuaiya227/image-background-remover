@@ -81,14 +81,16 @@ export default function Home() {
   const handleRemoveBg = async () => {
     if (!originalImage) return;
 
-    // 已登录用户：检查额度
-    if (user) {
-      const check = await checkQuota(user.uid);
-      if (check && !check.allowed) {
-        if (check.reason === 'no_credits') {
-          setError('⚠️ Credits 已用完，请前往个人中心充值');
-          return;
-        }
+    // 检查额度（登录 or 未登录）
+    const check = await checkQuota(user?.uid)
+    if (check && !check.allowed) {
+      if (check.reason === 'daily_limit_reached' || check.reason === 'anonymous_daily_limit') {
+        setError('⚠️ 今日免费次数已用完，请明天再来或登录账号')
+        return
+      }
+      if (check.reason === 'no_credits') {
+        setError('⚠️ Credits 已用完，请前往个人中心充值')
+        return
       }
     }
 
@@ -124,13 +126,21 @@ export default function Home() {
       const resultUrl = URL.createObjectURL(resultBlob);
       setResultImage(resultUrl);
 
-      // 已登录用户：扣减 credits
-      if (user) {
-        const result = await useCredits(user.uid);
-        if (result.success && result.credits !== undefined) {
-          setUserCredits(result.credits);
+      // 扣减额度（登录用户扣 credits，未登录记录到 anon）
+      const useResult = await useCredits(user?.uid)
+      if (useResult.success) {
+        if (user && useResult.credits !== undefined) {
+          setUserCredits(useResult.credits)
         }
+        if (!user && useResult.remaining !== undefined) {
+          setError(`✅ 今日已使用 1 次，剩余 ${useResult.remaining} 次`)
+        }
+      } else if (useResult.reason === 'anonymous_daily_limit' || useResult.reason === 'daily_limit_reached') {
+        setError('⚠️ 今日免费次数已用完')
+      } else if (useResult.reason === 'no_credits') {
+        setError('⚠️ Credits 已用完，请前往个人中心充值')
       }
+
     } catch (err) {
       setError(err instanceof Error ? err.message : '处理失败，请检查网络');
     } finally {
